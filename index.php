@@ -2,10 +2,11 @@
 header("Content-type: text/html; charset=utf-8");
 error_reporting(0); // Não reporta nenhum erro
 ini_set('display_errors', 0); // Não exibe erros na tela
+
 // Configurações da conexão
-$hostname = '{imap.gmail.com:993/imap/ssl}INBOX'; // Captura apenas a caixa de entrada padrão
-$username = 'Gmail'; // Seu e-mail
-$password = 'Senha APP'; // Sua senha (você pode precisar de uma senha de app para o Gmail)
+$hostname = '{imap.gmail.com:993/imap/ssl}INBOX';
+$username = 'danielartdesignofc@gmail.com';
+$password = 'rekz iofi emhj ldwx';
 
 // Função para ler o JSON
 function readJsonFile($filePath) {
@@ -41,52 +42,53 @@ $emails = imap_search($inbox, 'ALL');
         <?php
         // Se encontrar e-mails
         if ($emails) {
-            // Ordena os e-mails de forma decrescente (últimos e-mails primeiro)
             rsort($emails);
-            $max_emails = 10; // Limita a 10 e-mails por vez
+            $max_emails = 100;
             $i = 0;
 
             foreach ($emails as $email_number) {
                 if ($i >= $max_emails) break;
 
-                // Lê as informações do e-mail (assunto, data, remetente)
+                // Lê as informações do e-mail
                 $overview = imap_fetch_overview($inbox, $email_number, 0);
                 $message = imap_fetchbody($inbox, $email_number, 1);
-                $message = imap_utf8($message); // Corrige a codificação da mensagem
+                $message = imap_utf8($message);
 
-                // Extraí o número da pasta do título do e-mail
+                // Extrai o número da pasta do título do e-mail
                 preg_match('/\b(\d{4,7})\b/', $overview[0]->subject, $matches);
-                $pastaNumero = isset($matches[1]) ? intval($matches[1]) : null; // Converter para inteiro para comparação
+                $pastaNumero = isset($matches[1]) ? intval($matches[1]) : null;
 
                 // Verifica se o número da pasta está no JSON
                 $advogadoInfo = null;
+                $titulo = "Processo Novo"; // Define como Processo Novo por padrão
+
                 if ($pastaNumero) {
                     foreach ($jsonData as $data) {
-                        // Compare os números da pasta
-                        if (isset($data['PASTA_CLIENTE']) && intval($data['PASTA_CLIENTE']) === $pastaNumero) { // Também converter para inteiro
+                        if (isset($data['PASTA_CLIENTE']) && intval($data['PASTA_CLIENTE']) === $pastaNumero) {
                             $advogadoInfo = $data;
+                            $titulo = "INTIMAÇÃO"; // Se encontrado, define como INTIMAÇÃO
                             break;
                         }
                     }
                 }
 
-                // Exibe o resumo do e-mail em um card
-                echo '<div class="col-md-4 mb-3">'; // Coluna com espaçamento inferior
+                // Exibe o card
+                echo '<div class="col-md-4 mb-3">';
                 echo '<div class="card">';
                 echo '<div class="card-body">';
-                echo '<h5 class="card-title">' . htmlspecialchars(imap_utf8($overview[0]->subject)) . '</h5>';
+                echo '<h5 class="card-title">' . htmlspecialchars($titulo) . ': ' . htmlspecialchars(imap_utf8($overview[0]->subject)) . '</h5>';
                 echo '<h6 class="card-subtitle mb-2 text-muted">' . htmlspecialchars($overview[0]->from) . '</h6>';
-                echo '<p class="card-text">' . htmlspecialchars(substr($message, 0, 150)) . '...</p>'; // Mostra uma prévia da mensagem
+                echo '<p class="card-text">' . htmlspecialchars(substr($message, 0, 150)) . '...</p>';
                 echo '<p class="card-text"><small class="text-muted">' . htmlspecialchars($overview[0]->date) . '</small></p>';
 
                 if ($advogadoInfo) {
-                    echo '<button class="btn btn-primary" data-toggle="modal" data-target="#advogadoModal" data-email="' . htmlspecialchars($advogadoInfo['E-mail']) . '" data-advogado="' . htmlspecialchars($advogadoInfo['ADVOGADO']) . '">Ver Advogado</button>';
+                    echo '<button class="btn btn-primary" data-toggle="modal" data-target="#advogadoModal" data-email="' . htmlspecialchars($advogadoInfo['Email']) . '" data-advogado="' . htmlspecialchars($advogadoInfo['ADVOGADO']) . '">Ver Advogado</button>';
                 } else {
                     echo '<button class="btn btn-secondary" disabled>Sem advogado</button>';
                 }
 
-                echo '</div></div>'; 
-                echo '</div>'; 
+                echo '</div></div>';
+                echo '</div>';
 
                 $i++;
             }
@@ -94,6 +96,9 @@ $emails = imap_search($inbox, 'ALL');
         ?>
     </div>
 </div>
+
+<!-- Modal e Script para abrir e enviar e-mail continuam os mesmos -->
+
 
 <!-- Modal -->
 <div class="modal fade" id="advogadoModal" tabindex="-1" role="dialog" aria-labelledby="advogadoModalLabel" aria-hidden="true">
