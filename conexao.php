@@ -5,7 +5,7 @@ ini_set('display_errors', 0); // Não exibe erros na tela
 
 // Configurações da conexão
 $hostname = '{imap.gmail.com:993/imap/ssl}INBOX';
-$username = 'danielartdesignofc@gmail.com';
+$username = 'email';
 $password = 'qkpl rqct lebw twrc';
 
 // Função para ler o JSON
